@@ -1,38 +1,72 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BirdController : MonoBehaviour
 {
-    public float forwardSpeed = 5.0f; // Speed at which the bird moves forward
-    public float horizontalSpeed = 3.0f; // Speed at which the bird moves left/right
-    public float tiltSensitivity = 2.0f; // Sensitivity of tilt control
+    public float forwardSpeed = 5f;
+    public float horizontalSpeed = 2f;
+    public float verticalSpeed = 2f;
+    public float boostMultiplier = 2f;
+    public float normalFOV = 60f;
+    public float boostedFOV = 75f;
+    public AnimationCurve fovCurve; // AnimationCurve to control FOV change
 
-    private Rigidbody rb;
+    public Camera birdCamera; // Reference to the camera object
+
+    private bool isBoosting = false;
+    private float fovChangeStartTime;
+    private float initialFOV;
+    private float targetFOV;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        if (birdCamera == null)
+        {
+            Debug.LogError("Bird Camera is not assigned!");
+            return;
+        }
+
+        initialFOV = birdCamera.fieldOfView;
+        targetFOV = normalFOV;
     }
 
     private void Update()
     {
-        // Move the bird forward
-        Vector3 forwardMovement = -transform.forward * forwardSpeed * Time.deltaTime; // Negative z-axis
-        rb.MovePosition(rb.position + forwardMovement);
+        // Move the bird forward in the -z direction
+        transform.Translate(Vector3.back * forwardSpeed * (isBoosting ? boostMultiplier : 1f) * Time.deltaTime);
 
-        // Tilt control for Android
-        if (Input.acceleration != Vector3.zero)
+        // Get input for horizontal (left and right) movement
+        float horizontalInput = -Input.GetAxis("Horizontal"); // Switched the sign here
+        // Get input for vertical (up and down) movement
+        float verticalInput = Input.GetAxis("Vertical");
+
+        // Calculate the new position based on input and speeds
+        Vector3 newPosition = new Vector3(transform.position.x + horizontalInput * horizontalSpeed * Time.deltaTime,
+                                          transform.position.y + verticalInput * verticalSpeed * Time.deltaTime,
+                                          transform.position.z);
+
+        // Apply the new position
+        transform.position = newPosition;
+
+        // Speed up when right Shift is pressed
+        if (Input.GetKeyDown(KeyCode.RightShift))
         {
-            Vector3 tiltInput = Quaternion.Euler(90, 0, 0) * Input.acceleration;
-            Vector3 targetRotation = Quaternion.Euler(0, Mathf.Atan2(tiltInput.x, tiltInput.y) * Mathf.Rad2Deg, 0).eulerAngles; // Adjusted for y-axis tilt
-            Quaternion tiltRotation = Quaternion.Slerp(rb.rotation, Quaternion.Euler(targetRotation), tiltSensitivity * Time.deltaTime);
-            rb.MoveRotation(tiltRotation);
+            isBoosting = true;
+            fovChangeStartTime = Time.time;
+            initialFOV = birdCamera.fieldOfView;
+            targetFOV = boostedFOV;
+        }
+        if (Input.GetKeyUp(KeyCode.RightShift))
+        {
+            isBoosting = false;
+            fovChangeStartTime = Time.time;
+            initialFOV = birdCamera.fieldOfView;
+            targetFOV = normalFOV;
         }
 
-        // Horizontal movement
-        float horizontalInput = Input.GetAxis("Horizontal"); // Get input from keyboard or touch controls
-        Vector3 horizontalMovement = transform.right * horizontalInput * horizontalSpeed * Time.deltaTime;
-        rb.MovePosition(rb.position + horizontalMovement);
+        // Smoothly change FOV based on the curve
+        float timeSinceStart = Time.time - fovChangeStartTime;
+        float fovPercentage = Mathf.Clamp01(timeSinceStart / 0.5f); // Adjust the duration as needed
+        float curveValue = fovCurve.Evaluate(fovPercentage);
+        birdCamera.fieldOfView = Mathf.Lerp(initialFOV, targetFOV, curveValue);
     }
 }
