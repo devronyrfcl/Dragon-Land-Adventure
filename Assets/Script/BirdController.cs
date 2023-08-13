@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BirdController : MonoBehaviour
@@ -9,13 +11,17 @@ public class BirdController : MonoBehaviour
     public float normalFOV = 60f;
     public float boostedFOV = 75f;
     public AnimationCurve fovCurve; // AnimationCurve to control FOV change
+    public GameObject speedUpParticlePrefab;
 
     public Camera birdCamera; // Reference to the camera object
+    public AudioSource speedUpAudioSource; // Reference to the external AudioSource GameObject
 
     private bool isBoosting = false;
-    private float fovChangeStartTime;
+    private bool isSpeedPowerUpActive = false;
+    private float speedPowerUpEndTime;
     private float initialFOV;
     private float targetFOV;
+    private ParticleSystem speedUpParticle;
 
     private void Start()
     {
@@ -26,11 +32,29 @@ public class BirdController : MonoBehaviour
         }
 
         initialFOV = birdCamera.fieldOfView;
-        targetFOV = normalFOV;
+
+        speedUpParticle = Instantiate(speedUpParticlePrefab, transform).GetComponent<ParticleSystem>();
+        speedUpParticle.gameObject.SetActive(false);
     }
 
     private void Update()
     {
+        // Check if speed power-up is active and should end
+        if (isSpeedPowerUpActive && Time.time >= speedPowerUpEndTime)
+        {
+            isBoosting = false;
+            isSpeedPowerUpActive = false;
+            birdCamera.fieldOfView = normalFOV;
+            speedUpAudioSource.Stop();
+            speedUpParticle.Stop();
+        }
+
+        // Disable the SpeedUp particle when boost is over
+        if (!isSpeedPowerUpActive && speedUpParticle != null && speedUpParticle.isPlaying)
+        {
+            speedUpParticle.Stop();
+        }
+
         // Move the bird forward in the -z direction
         transform.Translate(Vector3.back * forwardSpeed * (isBoosting ? boostMultiplier : 1f) * Time.deltaTime);
 
@@ -46,27 +70,29 @@ public class BirdController : MonoBehaviour
 
         // Apply the new position
         transform.position = newPosition;
+    }
 
-        // Speed up when right Shift is pressed
-        if (Input.GetKeyDown(KeyCode.RightShift))
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("SpeedPowerUp"))
         {
             isBoosting = true;
-            fovChangeStartTime = Time.time;
-            initialFOV = birdCamera.fieldOfView;
-            targetFOV = boostedFOV;
-        }
-        if (Input.GetKeyUp(KeyCode.RightShift))
-        {
-            isBoosting = false;
-            fovChangeStartTime = Time.time;
-            initialFOV = birdCamera.fieldOfView;
-            targetFOV = normalFOV;
-        }
+            isSpeedPowerUpActive = true;
+            speedPowerUpEndTime = Time.time + 3f; // Speed up for 3 seconds
+            birdCamera.fieldOfView = boostedFOV;
 
-        // Smoothly change FOV based on the curve
-        float timeSinceStart = Time.time - fovChangeStartTime;
-        float fovPercentage = Mathf.Clamp01(timeSinceStart / 0.5f); // Adjust the duration as needed
-        float curveValue = fovCurve.Evaluate(fovPercentage);
-        birdCamera.fieldOfView = Mathf.Lerp(initialFOV, targetFOV, curveValue);
+            // Play sound using the external AudioSource
+            if (speedUpAudioSource != null)
+            {
+                speedUpAudioSource.Play();
+            }
+
+            // Activate particle
+            if (speedUpParticle != null)
+            {
+                speedUpParticle.gameObject.SetActive(true);
+                speedUpParticle.Play();
+            }
+        }
     }
 }
