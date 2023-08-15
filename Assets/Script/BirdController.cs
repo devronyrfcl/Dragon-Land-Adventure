@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BirdController : MonoBehaviour
 {
     public float forwardSpeed = 5f;
     public float horizontalSpeed = 2f;
     public float verticalSpeed = 2f;
+    public float rotationSpeed = 5f; // New rotation speed parameter
+    public float rotationPitchAngle = 15f; // Angle for pitch rotation
     public float boostMultiplier = 2f;
     public float normalFOV = 60f;
     public float boostedFOV = 75f;
@@ -20,7 +23,6 @@ public class BirdController : MonoBehaviour
     private bool isSpeedPowerUpActive = false;
     private float speedPowerUpEndTime;
     private float initialFOV;
-    private float targetFOV;
     private ParticleSystem speedUpParticle;
 
     private void Start()
@@ -70,6 +72,16 @@ public class BirdController : MonoBehaviour
 
         // Apply the new position
         transform.position = newPosition;
+
+        // Rotate the bird slightly based on horizontal and vertical input
+        Quaternion targetRotation = Quaternion.Euler(-verticalInput * rotationPitchAngle, transform.rotation.eulerAngles.y, -horizontalInput * rotationSpeed);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+
+        // Apply boost effect if speed power-up is active
+        if (isBoosting)
+        {
+            birdCamera.fieldOfView = boostedFOV;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
