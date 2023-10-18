@@ -5,14 +5,19 @@ public class CurrencyManager : MonoBehaviour
 {
     public static CurrencyManager Instance { get; private set; }
 
-    [SerializeField] private int startingHayyanStoneCurrency = 2323;
-    [SerializeField] private TextMeshProUGUI currencyText;
+    [SerializeField] private int startingHayyanCurrency = 100;
+    [SerializeField] private int startingPokeCurrency = 10;
+    [SerializeField] private TextMeshProUGUI hayyanCurrencyText;
+    [SerializeField] private TextMeshProUGUI pokeCurrencyText;
 
-    private int currentHayyanStoneCurrency;
+    private int currentHayyanCurrency;
+    private int currentPokeCurrency;
 
-    public int CurrentHayyanStoneCurrency => currentHayyanStoneCurrency;
+    public int CurrentHayyanCurrency => currentHayyanCurrency;
+    public int CurrentPokeCurrency => currentPokeCurrency;
 
-    public event System.Action<int> OnHayyanStoneCurrencyChanged;
+    public event System.Action<int> OnHayyanCurrencyChanged;
+    public event System.Action<int> OnPokeCurrencyChanged;
 
     private void Awake()
     {
@@ -29,61 +34,101 @@ public class CurrencyManager : MonoBehaviour
 
     private void Start()
     {
-        LoadHayyanStoneCurrency(); // Load saved currency on start
-        UpdateCurrencyText();
+        LoadCurrencies(); // Load saved currencies on start
+        UpdateCurrencyTexts();
     }
 
-    public void AddHayyanStoneCurrency(int amount)
+    public void AddHayyanCurrency(int amount)
     {
-        currentHayyanStoneCurrency += amount;
-        SaveHayyanStoneCurrency(); // Save currency after modification
-        UpdateCurrencyText();
-        OnHayyanStoneCurrencyChanged?.Invoke(currentHayyanStoneCurrency);
+        currentHayyanCurrency += amount;
+        SaveCurrencies(); // Save currencies after modification
+        UpdateCurrencyTexts();
+        OnHayyanCurrencyChanged?.Invoke(currentHayyanCurrency);
     }
 
-    public bool RemoveHayyanStoneCurrency(int amount)
+    public bool RemoveHayyanCurrency(int amount)
     {
-        if (currentHayyanStoneCurrency >= amount)
+        if (currentHayyanCurrency >= amount)
         {
-            currentHayyanStoneCurrency -= amount;
-            SaveHayyanStoneCurrency(); // Save currency after modification
-            UpdateCurrencyText();
-            OnHayyanStoneCurrencyChanged?.Invoke(currentHayyanStoneCurrency);
+            currentHayyanCurrency -= amount;
+            SaveCurrencies(); // Save currencies after modification
+            UpdateCurrencyTexts();
+            OnHayyanCurrencyChanged?.Invoke(currentHayyanCurrency);
             return true;
         }
         else
         {
-            Debug.LogWarning("Not enough Hayyan Stone currency to remove.");
+            Debug.LogWarning("Not enough Hayyans to remove.");
             return false;
         }
     }
 
-    public void UpdateCurrencyText() // Changed to public
+    public void AddPokeCurrency(int amount)
     {
-        currencyText.text = currentHayyanStoneCurrency.ToString();
+        currentPokeCurrency += amount;
+        SaveCurrencies(); // Save currencies after modification
+        UpdateCurrencyTexts();
+        OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
     }
 
-    private void SaveHayyanStoneCurrency()
+    public void RemovePoke(int amount)
     {
-        PlayerPrefs.SetInt("Hayyan_Stone_Currency", currentHayyanStoneCurrency);
-        PlayerPrefs.Save();
+        currentPokeCurrency -= amount;
+        SaveCurrencies(); // Save currencies after modification
+        UpdateCurrencyTexts();
+        OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
     }
 
-    public int GetHayyanStoneCurrency() // Function to get the current Hayyan Stone currency
+    public bool RemovePokeCurrency(int amount)
     {
-        return currentHayyanStoneCurrency;
-    }
-
-    private void LoadHayyanStoneCurrency()
-    {
-        if (PlayerPrefs.HasKey("Hayyan_Stone_Currency"))
+        if (currentPokeCurrency >= amount)
         {
-            currentHayyanStoneCurrency = PlayerPrefs.GetInt("Hayyan_Stone_Currency");
+            currentPokeCurrency -= amount;
+            SaveCurrencies(); // Save currencies after modification
+            UpdateCurrencyTexts();
+            OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
+            return true;
         }
         else
         {
-            currentHayyanStoneCurrency = startingHayyanStoneCurrency;
-            SaveHayyanStoneCurrency(); // Save default currency if it's the first time
+            Debug.LogWarning("Not enough Pokes to remove.");
+            return false;
+        }
+    }
+
+    private void UpdateCurrencyTexts()
+    {
+        hayyanCurrencyText.text = currentHayyanCurrency.ToString();
+        pokeCurrencyText.text = currentPokeCurrency.ToString();
+    }
+
+    private void SaveCurrencies()
+    {
+        PlayerPrefs.SetInt("Hayyan_Currency", currentHayyanCurrency);
+        PlayerPrefs.SetInt("Poke_Currency", currentPokeCurrency);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadCurrencies()
+    {
+        if (PlayerPrefs.HasKey("Hayyan_Currency"))
+        {
+            currentHayyanCurrency = PlayerPrefs.GetInt("Hayyan_Currency");
+        }
+        else
+        {
+            currentHayyanCurrency = startingHayyanCurrency;
+            SaveCurrencies(); // Save default currencies if it's the first time
+        }
+
+        if (PlayerPrefs.HasKey("Poke_Currency"))
+        {
+            currentPokeCurrency = PlayerPrefs.GetInt("Poke_Currency");
+        }
+        else
+        {
+            currentPokeCurrency = startingPokeCurrency;
+            SaveCurrencies(); // Save default currencies if it's the first time
         }
     }
 }

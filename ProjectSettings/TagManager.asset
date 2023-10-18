@@ -7,6 +7,15 @@ TagManager:
   - Tree
   - SpeedPowerUp
   - Hayyan
+  - Ball
+  - DontCrossPortals
+  - Enemy
+  - Terrain
+  - KillingCurse
+  - Health
+  - HardProps
+  - Animal
+  - HeartCoin
   layers:
   - Default
   - TransparentFX

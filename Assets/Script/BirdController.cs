@@ -8,22 +8,36 @@ public class BirdController : MonoBehaviour
     public float forwardSpeed = 5f;
     public float horizontalSpeed = 2f;
     public float verticalSpeed = 2f;
-    public float rotationSpeed = 5f; // New rotation speed parameter
-    public float rotationPitchAngle = 15f; // Angle for pitch rotation
+    public float rotationSpeed = 5f;
+    public float rotationPitchAngle = 15f;
     public float boostMultiplier = 2f;
     public float normalFOV = 60f;
     public float boostedFOV = 75f;
-    public AnimationCurve fovCurve; // AnimationCurve to control FOV change
+    public AnimationCurve fovCurve;
     public GameObject speedUpParticlePrefab;
+    public GameObject healthParticlePrefab;
+    public AudioSource HayyanCollectSound;
+    public AudioSource TreeCrushed;
+    public AudioSource HardPropsCrushedSound;
+    public AudioSource HealthTriggerSound;
+    public AudioSource HeartTriggerSound;
+    public FixedJoystick JoyStick;
 
-    public Camera birdCamera; // Reference to the camera object
-    public AudioSource speedUpAudioSource; // Reference to the external AudioSource GameObject
+    public Camera birdCamera;
+    public AudioSource speedUpAudioSource;
+
+    public int maxPower = 100; // Maximum power
+    [SerializeField]
+    public int currentPower; // Current power
+
+    public LayerMask groundLayer; // Layer mask for detecting ground (set in the Unity Inspector)
 
     private bool isBoosting = false;
     private bool isSpeedPowerUpActive = false;
     private float speedPowerUpEndTime;
     private float initialFOV;
     private ParticleSystem speedUpParticle;
+
 
     private void Start()
     {
@@ -37,11 +51,15 @@ public class BirdController : MonoBehaviour
 
         speedUpParticle = Instantiate(speedUpParticlePrefab, transform).GetComponent<ParticleSystem>();
         speedUpParticle.gameObject.SetActive(false);
+
+        currentPower = maxPower; // Initialize power
     }
 
     private void Update()
     {
-        // Check if speed power-up is active and should end
+        // Detect the ground distance
+        DetectGroundDistance();
+
         if (isSpeedPowerUpActive && Time.time >= speedPowerUpEndTime)
         {
             isBoosting = false;
@@ -51,36 +69,40 @@ public class BirdController : MonoBehaviour
             speedUpParticle.Stop();
         }
 
-        // Disable the SpeedUp particle when boost is over
         if (!isSpeedPowerUpActive && speedUpParticle != null && speedUpParticle.isPlaying)
         {
             speedUpParticle.Stop();
         }
 
-        // Move the bird forward in the -z direction
         transform.Translate(Vector3.back * forwardSpeed * (isBoosting ? boostMultiplier : 1f) * Time.deltaTime);
 
-        // Get input for horizontal (left and right) movement
-        float horizontalInput = -Input.GetAxis("Horizontal"); // Switched the sign here
-        // Get input for vertical (up and down) movement
+        float horizontalInput = -Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        // Calculate the new position based on input and speeds
         Vector3 newPosition = new Vector3(transform.position.x + horizontalInput * horizontalSpeed * Time.deltaTime,
                                           transform.position.y + verticalInput * verticalSpeed * Time.deltaTime,
                                           transform.position.z);
 
-        // Apply the new position
         transform.position = newPosition;
 
-        // Rotate the bird slightly based on horizontal and vertical input
         Quaternion targetRotation = Quaternion.Euler(-verticalInput * rotationPitchAngle, transform.rotation.eulerAngles.y, -horizontalInput * rotationSpeed);
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
-        // Apply boost effect if speed power-up is active
         if (isBoosting)
         {
             birdCamera.fieldOfView = boostedFOV;
+        }
+    }
+
+    private void DetectGroundDistance()
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundLayer))
+        {
+            float groundDistance = hit.distance;
+
+            // You can now use the groundDistance variable as needed.
+            // For example, you can print it to the console:
+            Debug.Log("Ground Distance: " + groundDistance);
         }
     }
 
@@ -90,21 +112,99 @@ public class BirdController : MonoBehaviour
         {
             isBoosting = true;
             isSpeedPowerUpActive = true;
-            speedPowerUpEndTime = Time.time + 3f; // Speed up for 3 seconds
+            speedPowerUpEndTime = Time.time + 3f;
             birdCamera.fieldOfView = boostedFOV;
 
-            // Play sound using the external AudioSource
             if (speedUpAudioSource != null)
             {
                 speedUpAudioSource.Play();
             }
 
-            // Activate particle
             if (speedUpParticle != null)
             {
                 speedUpParticle.gameObject.SetActive(true);
                 speedUpParticle.Play();
             }
         }
+        else if (other.CompareTag("Enemy"))
+        {
+            TakeDamage(10); // Bird takes 10 power damage when colliding with an enemy
+        }
+        else if (other.CompareTag("Tree"))
+        {
+            TreeCrushed.Play();
+            TakeDamage(5); // Bird takes 20 power damage when colliding with a tree
+        }
+        else if (other.CompareTag("HardProps"))
+        {
+            HardPropsCrushedSound.Play();
+            TakeDamage(20); // Bird takes 20 power damage when colliding with a tree
+        }
+        else if (other.CompareTag("Power"))
+        {
+            IncreasePower(50); // Bird increases power by 50 when going through a power object
+            Destroy(other.gameObject); // Destroy the power object after collecting it
+        }
+        else if (other.CompareTag("Hayyan"))
+        {
+            HayyanCollectSound.Play();
+            IncreasePower(1); // Bird increases power by 50 when going through a power object
+            CurrencyManager.Instance.AddHayyanCurrency(1);
+            Destroy(other.gameObject);
+            
+        }
+        else if (other.CompareTag("Health"))
+        {
+            IncreasePower(30);
+            HealthTriggerSound.Play();
+            CreateHealthParticleEffect(other.transform.position); // Create health particle effect
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("HeartCoin"))
+        {
+            
+            HeartTriggerSound.Play();
+            Destroy(other.gameObject);
+        }
     }
+
+    public void TakeDamage(int damage)
+    {
+        currentPower -= damage;
+
+        if (currentPower <= 0)
+        {
+            gameObject.SetActive(false); // Deactivate the bird when power reaches zero
+        }
+    }
+
+    public void IncreasePower(int amount)
+    {
+        currentPower += amount;
+
+        // Ensure that power does not exceed the maximum
+        currentPower = Mathf.Clamp(currentPower, 0, maxPower);
+    }
+
+    public int GetCurrentPower()
+    {
+        return currentPower;
+    }
+
+    private void CreateHealthParticleEffect(Vector3 position)
+    {
+        if (healthParticlePrefab != null)
+        {
+            Instantiate(healthParticlePrefab, position, Quaternion.identity);
+        }
+    }
+
 }
+
+
+
+
+
+
+
+

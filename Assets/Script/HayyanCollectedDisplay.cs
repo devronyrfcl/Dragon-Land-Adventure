@@ -9,8 +9,8 @@ public class HayyanCollectedDisplay : MonoBehaviour
 
     private void Start()
     {
-        CurrencyManager.Instance.OnHayyanStoneCurrencyChanged += UpdateCollectedHayyansText;
-        UpdateCollectedHayyansText(CurrencyManager.Instance.CurrentHayyanStoneCurrency);
+        CurrencyManager.Instance.OnHayyanCurrencyChanged += UpdateCollectedHayyansText;
+        UpdateCollectedHayyansText(CurrencyManager.Instance.CurrentHayyanCurrency);
     }
 
     private void UpdateCollectedHayyansText(int newHayyanValue)
@@ -26,6 +26,6 @@ public class HayyanCollectedDisplay : MonoBehaviour
 
     private void OnDestroy()
     {
-        CurrencyManager.Instance.OnHayyanStoneCurrencyChanged -= UpdateCollectedHayyansText;
+        CurrencyManager.Instance.OnHayyanCurrencyChanged -= UpdateCollectedHayyansText;
     }
 }
