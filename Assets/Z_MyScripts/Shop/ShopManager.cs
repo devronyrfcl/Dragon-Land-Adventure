@@ -119,7 +119,7 @@ public class ShopManager : MonoBehaviour
         selectCharacterButton.interactable = false;
     }
 
-    public void UnlockWithGems()
+    public void UnlockWithCoins()
     {
         ShopElement c = characters[characterIndex];
         if (PlayerPrefs.GetInt("Hayyan_Currency") < c.price)

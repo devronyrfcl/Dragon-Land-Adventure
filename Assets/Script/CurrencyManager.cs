@@ -7,41 +7,51 @@ public class CurrencyManager : MonoBehaviour
 
     [SerializeField] private int startingHayyanCurrency = 100;
     [SerializeField] private int startingPokeCurrency = 10;
+    [SerializeField] private int startingHeartCoins = 0; // New variable
     [SerializeField] private TextMeshProUGUI hayyanCurrencyText;
     [SerializeField] private TextMeshProUGUI pokeCurrencyText;
+    [SerializeField] private TextMeshProUGUI heartCoinsText; // New field
+    [SerializeField] private TextMeshProUGUI distanceText;
+    [SerializeField] private TextMeshProUGUI LeaderboarddistanceText;
 
     private int currentHayyanCurrency;
     private int currentPokeCurrency;
+    private int currentHeartCoins; // New variable
 
     public int CurrentHayyanCurrency => currentHayyanCurrency;
     public int CurrentPokeCurrency => currentPokeCurrency;
+    public int CurrentHeartCoins => currentHeartCoins; // New property
 
     public event System.Action<int> OnHayyanCurrencyChanged;
     public event System.Action<int> OnPokeCurrencyChanged;
+    public event System.Action<int> OnHeartCoinsChanged; // New event
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Keep the CurrencyManager across scenes
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Destroy(gameObject); // Destroy duplicate instances
+            Destroy(gameObject);
         }
     }
 
     private void Start()
     {
-        LoadCurrencies(); // Load saved currencies on start
+        LoadHayyanCurrencies();
+        //LoadPokeCurrencies();
+        //LoadHeartCurrencies();
         UpdateCurrencyTexts();
+        ShowStar();
     }
 
     public void AddHayyanCurrency(int amount)
     {
         currentHayyanCurrency += amount;
-        SaveCurrencies(); // Save currencies after modification
+        SaveCurrencies();
         UpdateCurrencyTexts();
         OnHayyanCurrencyChanged?.Invoke(currentHayyanCurrency);
     }
@@ -51,7 +61,7 @@ public class CurrencyManager : MonoBehaviour
         if (currentHayyanCurrency >= amount)
         {
             currentHayyanCurrency -= amount;
-            SaveCurrencies(); // Save currencies after modification
+            SaveCurrencies();
             UpdateCurrencyTexts();
             OnHayyanCurrencyChanged?.Invoke(currentHayyanCurrency);
             return true;
@@ -66,7 +76,7 @@ public class CurrencyManager : MonoBehaviour
     public void AddPokeCurrency(int amount)
     {
         currentPokeCurrency += amount;
-        SaveCurrencies(); // Save currencies after modification
+        SaveCurrencies();
         UpdateCurrencyTexts();
         OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
     }
@@ -74,7 +84,7 @@ public class CurrencyManager : MonoBehaviour
     public void RemovePoke(int amount)
     {
         currentPokeCurrency -= amount;
-        SaveCurrencies(); // Save currencies after modification
+        SaveCurrencies();
         UpdateCurrencyTexts();
         OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
     }
@@ -84,7 +94,7 @@ public class CurrencyManager : MonoBehaviour
         if (currentPokeCurrency >= amount)
         {
             currentPokeCurrency -= amount;
-            SaveCurrencies(); // Save currencies after modification
+            SaveCurrencies();
             UpdateCurrencyTexts();
             OnPokeCurrencyChanged?.Invoke(currentPokeCurrency);
             return true;
@@ -96,20 +106,47 @@ public class CurrencyManager : MonoBehaviour
         }
     }
 
+    public void AddHeartCoins(int amount) // New method
+    {
+        currentHeartCoins += amount;
+        SaveCurrencies();
+        UpdateCurrencyTexts();
+        OnHeartCoinsChanged?.Invoke(currentHeartCoins);
+    }
+
+    public bool RemoveHeartCoins(int amount) // New method
+    {
+        if (currentHeartCoins >= amount)
+        {
+            currentHeartCoins -= amount;
+            SaveCurrencies();
+            UpdateCurrencyTexts();
+            OnHeartCoinsChanged?.Invoke(currentHeartCoins);
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning("Not enough Heart Coins to remove.");
+            return false;
+        }
+    }
+
     private void UpdateCurrencyTexts()
     {
         hayyanCurrencyText.text = currentHayyanCurrency.ToString();
         pokeCurrencyText.text = currentPokeCurrency.ToString();
+        heartCoinsText.text = currentHeartCoins.ToString(); // Display Heart Coins
     }
 
     private void SaveCurrencies()
     {
         PlayerPrefs.SetInt("Hayyan_Currency", currentHayyanCurrency);
         PlayerPrefs.SetInt("Poke_Currency", currentPokeCurrency);
+        PlayerPrefs.SetInt("Heart_Coins", currentHeartCoins); // Save Heart Coins
         PlayerPrefs.Save();
     }
 
-    private void LoadCurrencies()
+    private void LoadHayyanCurrencies()
     {
         if (PlayerPrefs.HasKey("Hayyan_Currency"))
         {
@@ -118,17 +155,75 @@ public class CurrencyManager : MonoBehaviour
         else
         {
             currentHayyanCurrency = startingHayyanCurrency;
-            SaveCurrencies(); // Save default currencies if it's the first time
+            SaveCurrencies();
         }
 
         if (PlayerPrefs.HasKey("Poke_Currency"))
         {
             currentPokeCurrency = PlayerPrefs.GetInt("Poke_Currency");
+            SaveCurrencies();
         }
         else
         {
             currentPokeCurrency = startingPokeCurrency;
+            SaveCurrencies();
+        }
+
+        if (PlayerPrefs.HasKey("Heart_Coins")) // Load Heart Coins
+        {
+            currentHeartCoins = PlayerPrefs.GetInt("Heart_Coins");
+            SaveCurrencies();
+        }
+        else
+        {
+            currentHeartCoins = startingHeartCoins; // Initialize Heart Coins
             SaveCurrencies(); // Save default currencies if it's the first time
+        }
+    }
+
+    /*private void LoadPokeCurrencies()
+    {
+        if (PlayerPrefs.HasKey("Poke_Currency"))
+        {
+            currentPokeCurrency = PlayerPrefs.GetInt("Poke_Currency");
+            SaveCurrencies();
+        }
+        else
+        {
+            currentPokeCurrency = startingPokeCurrency;
+            SaveCurrencies();
+        }
+    }
+
+    private void LoadHeartCurrencies()
+    {
+        if (PlayerPrefs.HasKey("Heart_Coins")) // Load Heart Coins
+        {
+            currentHeartCoins = PlayerPrefs.GetInt("Heart_Coins");
+            SaveCurrencies();
+        }
+        else
+        {
+            currentHeartCoins = startingHeartCoins; // Initialize Heart Coins
+            SaveCurrencies(); // Save default currencies if it's the first time
+        }
+    }*/
+
+    private void ShowStar()
+    {
+        // Load the saved distance from PlayerPrefs
+        float savedDistance = PlayerPrefs.GetFloat("DistanceTraveled", 0f);
+        int Total_Distance = Mathf.FloorToInt(savedDistance);
+
+        // Update the TextMeshPro text with the loaded distance
+        if (distanceText != null)
+        {
+            distanceText.text = savedDistance.ToString("F0");
+        }
+
+        if (LeaderboarddistanceText != null)
+        {
+            LeaderboarddistanceText.text = "Distance: " + savedDistance.ToString("F0");
         }
     }
 }
