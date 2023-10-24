@@ -89,6 +89,7 @@ public class BirdController : MonoBehaviour
 
         currentPower = maxPower; // Initialize power
         LoadSavedDistance();
+        AudioManager.Instance.PlayMusic("BGM_Game");
     }
 
     private void Update()
