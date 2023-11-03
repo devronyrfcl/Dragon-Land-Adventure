@@ -115,7 +115,7 @@ public class BirdController : MonoBehaviour
             if (powerDecreaseTimer <= 0f)
             {
                 TakeDamage(1); // Decrease the power by 1
-                powerDecreaseTimer = 5f; // Reset the timer
+                powerDecreaseTimer = 1f; // Reset the timer
             }
 
             float movementDistance = forwardSpeed * (isBoosting ? boostMultiplier : 1f) * Time.deltaTime;
@@ -209,7 +209,7 @@ public class BirdController : MonoBehaviour
         {
             //HardPropsCrushedSound.Play();
             AudioManager.Instance.PlaySFX("HardPropsCrushedSound");
-            TakeDamage(20); // Bird takes 20 power damage when colliding with a tree
+            TakeDamage(10); // Bird takes 20 power damage when colliding with a tree
             followCamera.ShakeCamera();
         }
         else if (other.CompareTag("Power"))
@@ -221,7 +221,7 @@ public class BirdController : MonoBehaviour
         {
             //HayyanCollectSound.Play();
             AudioManager.Instance.PlaySFX("HayyanCollectSound");
-            IncreasePower(1); // Bird increases power by 50 when going through a power object
+            IncreasePower(2); // Bird increases power by 50 when going through a power object
             CurrencyManager.Instance.AddHayyanCurrency(1);
             Destroy(other.gameObject);
             

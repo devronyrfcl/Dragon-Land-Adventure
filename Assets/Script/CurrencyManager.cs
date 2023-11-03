@@ -35,7 +35,7 @@ public class CurrencyManager : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
     }
 

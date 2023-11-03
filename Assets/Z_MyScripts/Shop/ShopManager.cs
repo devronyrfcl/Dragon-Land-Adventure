@@ -60,6 +60,8 @@ public class ShopManager : MonoBehaviour
         shopCharacters[characterIndex].SetActive(true);
 
         UpdateUI();
+        AudioManager.Instance.StopMusic("BGM_Game");
+        AudioManager.Instance.PlayMusic("BGM_Manu");
     }
 
    void Update()
