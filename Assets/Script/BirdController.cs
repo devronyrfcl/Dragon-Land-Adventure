@@ -54,7 +54,6 @@ public class BirdController : MonoBehaviour
     private float powerDecreaseTimer = 5f; // Timer to decrease power
     private float distanceTraveled = 0f; // Add this variable to track the distance traveled
 
-
     private void Start()
     {
         if (birdCamera == null)
@@ -145,6 +144,7 @@ public class BirdController : MonoBehaviour
 
             Quaternion targetRotation = Quaternion.Euler(-verticalInput * rotationPitchAngle, transform.rotation.eulerAngles.y, -horizontalInput * rotationSpeed);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            
         }
     }
 
@@ -230,7 +230,7 @@ public class BirdController : MonoBehaviour
         {
             IncreasePower(30);
             //HealthTriggerSound.Play();
-            AudioManager.Instance.PlaySFX("HealthTriggerSound");
+            AudioManager.Instance.PlaySFX("Health_Trigger_Sound");
             healthParticle.Play();
             //CreateHealthParticleEffect(other.transform.position); // Create health particle effect
             Destroy(other.gameObject);
@@ -239,7 +239,7 @@ public class BirdController : MonoBehaviour
         {
             
             //HeartTriggerSound.Play();
-            AudioManager.Instance.PlaySFX("HeartTriggerSound");
+            AudioManager.Instance.PlaySFX("Heart_Trigger_Sound");
             heartParticle.Play();
             CurrencyManager.Instance.AddHeartCoins(1);
             Destroy(other.gameObject);
@@ -327,6 +327,15 @@ public class BirdController : MonoBehaviour
         distanceTraveled = PlayerPrefs.GetFloat("DistanceTraveled", 0f);
     }
 
-
+    /*public override void Teleport (Transform fromPortal, Transform toPortal, Vector3 pos, Quaternion rot) {
+        transform.position = pos;
+        Vector3 eulerRot = rot.eulerAngles;
+        float delta = Mathf.DeltaAngle (smoothYaw, eulerRot.y);
+        yaw += delta;
+        smoothYaw += delta;
+        transform.eulerAngles = Vector3.up * smoothYaw;
+        velocity = toPortal.TransformVector (fromPortal.InverseTransformVector (velocity));
+        Physics.SyncTransforms ();
+    }*/
 
 }

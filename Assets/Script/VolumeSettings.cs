@@ -1,44 +1,54 @@
+using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
-using UnityEngine;
 
 public class VolumeSettings : MonoBehaviour
 {
-    [SerializeField] private AudioMixer myMixer;
+    [SerializeField] private AudioMixer audioMixer;
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider sfxSlider;
 
-    void Start()
+    private const string MusicVolumeKey = "musicVolume";
+    private const string SfxVolumeKey = "sfxVolume";
+
+    private void Start()
     {
-        if (PlayerPrefs.HasKey("musicVolume"))
+        if (PlayerPrefs.HasKey(MusicVolumeKey))
         {
             LoadVolume();
         }
         else
         {
-            SetMusicVolume();
+            SetDefaultVolumes();
         }
     }
 
     public void SetMusicVolume()
     {
         float volume = musicSlider.value;
-        myMixer.SetFloat("music", Mathf.Log10(volume)*20);
-        PlayerPrefs.SetFloat("musicVolume", volume);
-    }
-
-    private void LoadVolume()
-    {
-        musicSlider.value = PlayerPrefs.GetFloat("musicVolume");
-        SetMusicVolume();
-        sfxSlider.value = PlayerPrefs.GetFloat("sfxVolume");
-        SetsfxVolume();
+        audioMixer.SetFloat("music", Mathf.Log10(volume) * 20);
+        PlayerPrefs.SetFloat(MusicVolumeKey, volume);
     }
 
     public void SetsfxVolume()
     {
         float volume = sfxSlider.value;
-        myMixer.SetFloat("sfx", Mathf.Log10(volume)*20);
-        PlayerPrefs.SetFloat("sfxVolume", volume);
+        audioMixer.SetFloat("sfx", Mathf.Log10(volume) * 20);
+        PlayerPrefs.SetFloat(SfxVolumeKey, volume);
+    }
+
+    private void LoadVolume()
+    {
+        musicSlider.value = PlayerPrefs.GetFloat(MusicVolumeKey);
+        SetMusicVolume();
+        sfxSlider.value = PlayerPrefs.GetFloat(SfxVolumeKey);
+        SetsfxVolume();
+    }
+
+    private void SetDefaultVolumes()
+    {
+        // Set default volume values or any other initialization logic here
+        SetMusicVolume();
+        SetsfxVolume();
     }
 }
