@@ -16,6 +16,7 @@ TagManager:
   - HardProps
   - Animal
   - HeartCoin
+  - Portal
   layers:
   - Default
   - TransparentFX

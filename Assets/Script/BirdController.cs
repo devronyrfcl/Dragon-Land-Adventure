@@ -89,6 +89,7 @@ public class BirdController : MonoBehaviour
         currentPower = maxPower; // Initialize power
         LoadSavedDistance();
         AudioManager.Instance.PlayMusic("BGM_Game");
+        Time.timeScale = 1f;
     }
 
     private void Update()
@@ -220,35 +221,44 @@ public class BirdController : MonoBehaviour
         else if (other.CompareTag("Hayyan"))
         {
             //HayyanCollectSound.Play();
-            AudioManager.Instance.PlaySFX("HayyanCollectSound");
-            IncreasePower(2); // Bird increases power by 50 when going through a power object
-            CurrencyManager.Instance.AddHayyanCurrency(1);
             Destroy(other.gameObject);
+            AudioManager.Instance.PlaySFX("HayyanCollectSound");
+            IncreasePower(1); // Bird increases power by 50 when going through a power object
+            CurrencyManager.Instance.AddHayyanCurrency(1);
+            //Destroy(other.gameObject);
             
         }
         else if (other.CompareTag("Health"))
         {
+            Destroy(other.gameObject);
             IncreasePower(30);
             //HealthTriggerSound.Play();
             AudioManager.Instance.PlaySFX("Health_Trigger_Sound");
             healthParticle.Play();
             //CreateHealthParticleEffect(other.transform.position); // Create health particle effect
-            Destroy(other.gameObject);
+            
         }
         else if (other.CompareTag("HeartCoin"))
         {
             
+            Destroy(other.gameObject);
             //HeartTriggerSound.Play();
             AudioManager.Instance.PlaySFX("Heart_Trigger_Sound");
             heartParticle.Play();
             CurrencyManager.Instance.AddHeartCoins(1);
-            Destroy(other.gameObject);
+            
         }
         else if (other.CompareTag("Terrain")) // Check for terrain collision
         {
             Die(); // Call the Die method when the bird hits terrain
             followCamera.ShakeCamera();
         }
+        else if (other.CompareTag("Portal"))
+        {
+            // Reset Y rotation
+            transform.rotation = Quaternion.Euler(Vector3.zero);
+        }
+
     }
 
     public void TakeDamage(int damage)
@@ -295,6 +305,7 @@ public class BirdController : MonoBehaviour
         StopMovement();
         OnDestroy();
         ReviveUIPanel.SetActive(true);
+        Time.timeScale = 0f;
         
         
     }
@@ -313,6 +324,7 @@ public class BirdController : MonoBehaviour
         healthParticle.Play();
         StartMovement();
         LoadSavedDistance();
+        Time.timeScale = 1f;
     }
 
     private void OnDestroy()

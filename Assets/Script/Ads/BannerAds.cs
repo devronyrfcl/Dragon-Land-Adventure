@@ -4,7 +4,7 @@ using GoogleMobileAds.Api;
 
 public class BannerAds : MonoBehaviour
 {
-    public string adUnitId = "ca-app-pub-2542236422731393/2619611280";
+    private string adUnitId = "ca-app-pub-3940256099942544/6300978111";
     private BannerView bannerView;
 
     void Start()
