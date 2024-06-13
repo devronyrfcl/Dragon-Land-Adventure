@@ -17,6 +17,7 @@ TagManager:
   - Animal
   - HeartCoin
   - Portal
+  - Water
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - PP
   - Water
   - UI
-  - 
+  - Player
   - 
   - 
   - 
